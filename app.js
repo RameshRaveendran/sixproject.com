@@ -1,11 +1,14 @@
 require('dotenv').config();
 // Initialize the Express application
 const express = require('express');
+const connectDB = require('./src/config/db');
 const app = express();
 
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+connectDB();
 
 // Routes
 app.get('/', (req, res) => {
