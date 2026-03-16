@@ -1,5 +1,6 @@
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
+const generateToken = require("../utils/generateToken");
 
 
 // register controller
@@ -93,6 +94,9 @@ const loginUser = async (req, res) => {
         message: "Invalid credentials"
       });
     }
+
+    // token generation
+    const token = generateToken(user._id,user.role);
 
     res.status(200).json({
       success: true,
