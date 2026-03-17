@@ -121,10 +121,20 @@ const loginUser = async (req, res) => {
 
 };
 
+// logout controller
+const logout = (req, res) => {
+  res.clearCookie("token");
+
+  res.json({
+    success: true,
+    message: "Logged out successfully"
+  });
+};
 
 // exports
 
 module.exports ={
     registerUser,
-    loginUser
+    loginUser,
+    logout
 }

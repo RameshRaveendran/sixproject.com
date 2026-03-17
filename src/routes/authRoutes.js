@@ -1,13 +1,15 @@
 const express = require("express");
 const router = express.Router();
 
-const {registerUser , loginUser} = require("../controllers/authController");
+const {registerUser , loginUser ,logout} = require("../controllers/authController");
 const {protect , adminOnly} = require("../middlewere/authMiddleware");
 
 // register
 router.post("/register",registerUser);
 // login
 router.post("/login", loginUser);
+// logout
+router.post("/logout", logout);
 
 // user route
 router.get("/dashboard", protect,(req , res) => {
