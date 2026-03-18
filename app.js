@@ -19,12 +19,12 @@ app.use(express.urlencoded({ extended: true }));
 
 // set view engine
 app.set("view engine", "ejs");
-app.set("views", "./views");
+app.set("views", "./src/views");
 
 
 // Routes test
 app.get('/', (req, res) => {
-  res.send('Hello World!');
+  res.render("auth/login");
 });
 
 // main routes

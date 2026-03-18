@@ -1,0 +1,9 @@
+<h1>Admin Dashboard</h1>
+
+<ul>
+  <% users.forEach(user => { %>
+    <li>
+      <%= user.name %> - <%= user.email %>
+    </li>
+  <% }) %>
+</ul>
