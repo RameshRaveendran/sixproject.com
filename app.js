@@ -17,6 +17,10 @@ connectDB();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// set view engine
+app.set("view engine", "ejs");
+app.set("views", "./views");
+
 
 // Routes test
 app.get('/', (req, res) => {
