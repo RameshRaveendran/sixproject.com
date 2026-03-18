@@ -1,13 +1,11 @@
 {
   "name": "fulldomainproject",
   "version": "1.0.0",
-  "description": "",
+  "description": "User Admin Authentication System with JWT",
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
-    "dev": "nodemon app.js",
-    "seed": "node seedAdmin.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "nodemon app.js"
   },
   "keywords": [],
   "author": "",
@@ -15,14 +13,11 @@
   "type": "commonjs",
   "dependencies": {
     "bcryptjs": "^3.0.3",
-    "connect-flash": "^0.1.1",
     "cookie-parser": "^1.4.6",
-    "cors": "^2.8.6",
+    "dotenv": "^16.4.5",
     "ejs": "^5.0.1",
     "express": "^5.2.1",
-    "express-session": "^1.17.3",
     "jsonwebtoken": "^9.0.3",
-    "method-override": "^3.0.0",
     "mongoose": "^9.3.0",
     "nodemon": "^3.1.14"
   }

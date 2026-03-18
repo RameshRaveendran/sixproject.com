@@ -1,5 +1,13 @@
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+
+// Generate JWT Token
+const generateToken = (id, role) => {
+  return jwt.sign({ id, role }, process.env.JWT_SECRET, {
+    expiresIn: "1d",
+  });
+};
 
 // Register controller
 const registerUser = async (req, res) => {
@@ -8,15 +16,13 @@ const registerUser = async (req, res) => {
 
     // Validation
     if (!name || !email || !password) {
-      req.flash('error_msg', 'All fields are required');
-      return res.redirect('/register');
+      return res.render('auth/register', { error: 'All fields are required' });
     }
 
     // Check existing user
     const userExists = await User.findOne({ email });
     if (userExists) {
-      req.flash('error_msg', 'User already exists');
-      return res.redirect('/register');
+      return res.render('auth/register', { error: 'User already exists' });
     }
 
     // Hash password
@@ -29,13 +35,24 @@ const registerUser = async (req, res) => {
       password: hashedPassword
     });
 
-    req.flash('success_msg', 'Registration successful! Please login.');
-    res.redirect('/login');
+    // Generate token and set cookie
+    const token = generateToken(user._id, user.role);
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    });
+
+    // Redirect based on role
+    if (user.role === 'admin') {
+      return res.redirect('/admin/dashboard');
+    } else {
+      return res.redirect('/dashboard');
+    }
 
   } catch (error) {
     console.error('Registration error:', error);
-    req.flash('error_msg', 'Server error during registration');
-    res.redirect('/register');
+    return res.render('auth/register', { error: 'Server error during registration' });
   }
 };
 
@@ -46,62 +63,51 @@ const loginUser = async (req, res) => {
 
     // Validation
     if (!email || !password) {
-      req.flash('error_msg', 'Email and password required');
-      return res.redirect('/login');
+      return res.render('auth/login', { error: 'Email and password required' });
     }
 
     // Find user
     const user = await User.findOne({ email });
     if (!user) {
-      req.flash('error_msg', 'Invalid credentials');
-      return res.redirect('/login');
+      return res.render('auth/login', { error: 'Invalid credentials' });
     }
 
     // Compare password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      req.flash('error_msg', 'Invalid credentials');
-      return res.redirect('/login');
+      return res.render('auth/login', { error: 'Invalid credentials' });
     }
 
-    // Create session
-    req.session.user = {
-      id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role
-    };
+    // Generate token and set cookie
+    const token = generateToken(user._id, user.role);
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    });
 
-    req.flash('success_msg', 'Login successful!');
-    
     // Redirect based on role
     if (user.role === 'admin') {
-      res.redirect('/admin/dashboard');
+      return res.redirect('/admin/dashboard');
     } else {
-      res.redirect('/user/dashboard');
+      return res.redirect('/dashboard');
     }
 
   } catch (error) {
     console.error('Login error:', error);
-    req.flash('error_msg', 'Server error during login');
-    res.redirect('/login');
+    return res.render('auth/login', { error: 'Server error during login' });
   }
 };
 
 // Logout controller
 const logout = (req, res) => {
-  req.session.destroy((err) => {
-    if (err) {
-      console.error('Logout error:', err);
-    }
-    res.clearCookie('connect.sid');
-    req.flash('success_msg', 'Logged out successfully');
-    res.redirect('/');
-  });
+  res.clearCookie('token');
+  res.redirect('/');
 };
 
 module.exports = {
   registerUser,
   loginUser,
-  logout
+  logout,
+  generateToken
 };
