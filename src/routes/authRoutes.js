@@ -1,35 +1,15 @@
 const express = require("express");
 const router = express.Router();
 
-const {registerUser , loginUser ,logout} = require("../controllers/authController");
-const {protect , adminOnly} = require("../middlewere/authMiddleware");
+const { registerUser, loginUser, logout } = require("../controllers/authController");
 
-// register
-router.post("/register",registerUser);
-// login
+// Register route
+router.post("/register", registerUser);
+
+// Login route  
 router.post("/login", loginUser);
-// logout
+
+// Logout route
 router.post("/logout", logout);
-
-// user route
-router.get("/dashboard", protect,(req , res) => {
-    res.json({
-        message:"User dashboard"
-    });
-});
-//admin router
-router.get("/admin", protect , adminOnly, (req, res) => {
-    res.json({
-        message:"Admin dashboard"
-    });
-});
-router.get("/login", (req, res) => {
-  res.render("auth/login");
-});
-
-router.get("/register", (req, res) => {
-  res.render("auth/register");
-});
-
 
 module.exports = router;

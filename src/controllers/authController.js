@@ -1,140 +1,107 @@
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
-const generateToken = require("../utils/generateToken");
 
-
-// register controller
+// Register controller
 const registerUser = async (req, res) => {
   try {
-
     const { name, email, password } = req.body;
 
-    // validation
+    // Validation
     if (!name || !email || !password) {
-      return res.status(400).json({
-        success: false,
-        message: "All fields are required"
-      });
+      req.flash('error_msg', 'All fields are required');
+      return res.redirect('/register');
     }
 
-    // check existing user
+    // Check existing user
     const userExists = await User.findOne({ email });
-
     if (userExists) {
-      return res.status(400).json({
-        success: false,
-        message: "User already exists"
-      });
+      req.flash('error_msg', 'User already exists');
+      return res.redirect('/register');
     }
 
-    // hash password
+    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // create user
+    // Create user
     const user = await User.create({
       name,
       email,
       password: hashedPassword
     });
 
-    res.status(201).json({
-      success: true,
-      message: "User registered successfully",
-      data: {
-        id: user._id,
-        name: user.name,
-        email: user.email
-      }
-    });
+    req.flash('success_msg', 'Registration successful! Please login.');
+    res.redirect('/login');
 
   } catch (error) {
-
-    res.status(500).json({
-      success: false,
-      message: "Server error",
-      error: error.message
-    });
-
+    console.error('Registration error:', error);
+    req.flash('error_msg', 'Server error during registration');
+    res.redirect('/register');
   }
 };
 
-
-// login controller
-
+// Login controller
 const loginUser = async (req, res) => {
-
   try {
-
     const { email, password } = req.body;
 
-    // validation
+    // Validation
     if (!email || !password) {
-      return res.status(400).json({
-        success: false,
-        message: "Email and password required"
-      });
+      req.flash('error_msg', 'Email and password required');
+      return res.redirect('/login');
     }
 
-    // find user
+    // Find user
     const user = await User.findOne({ email });
-
     if (!user) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid credentials"
-      });
+      req.flash('error_msg', 'Invalid credentials');
+      return res.redirect('/login');
     }
 
-    // compare password
+    // Compare password
     const isMatch = await bcrypt.compare(password, user.password);
-
     if (!isMatch) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid credentials"
-      });
+      req.flash('error_msg', 'Invalid credentials');
+      return res.redirect('/login');
     }
 
-    // token generation
-    const token = generateToken(user._id,user.role);
+    // Create session
+    req.session.user = {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role
+    };
 
-    res.status(200).json({
-      success: true,
-      message: "Login successful",
-      token,
-      data: {
-        id: user._id,
-        name: user.name,
-        email: user.email
-      }
-    });
+    req.flash('success_msg', 'Login successful!');
+    
+    // Redirect based on role
+    if (user.role === 'admin') {
+      res.redirect('/admin/dashboard');
+    } else {
+      res.redirect('/user/dashboard');
+    }
 
   } catch (error) {
-
-    res.status(500).json({
-      success: false,
-      message: "Server error",
-      error: error.message
-    });
-
+    console.error('Login error:', error);
+    req.flash('error_msg', 'Server error during login');
+    res.redirect('/login');
   }
-
 };
 
-// logout controller
+// Logout controller
 const logout = (req, res) => {
-  res.clearCookie("token");
-
-  res.json({
-    success: true,
-    message: "Logged out successfully"
+  req.session.destroy((err) => {
+    if (err) {
+      console.error('Logout error:', err);
+    }
+    res.clearCookie('connect.sid');
+    req.flash('success_msg', 'Logged out successfully');
+    res.redirect('/');
   });
 };
 
-// exports
-
-module.exports ={
-    registerUser,
-    loginUser,
-    logout
-}
+module.exports = {
+  registerUser,
+  loginUser,
+  logout
+};

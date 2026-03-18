@@ -1,6 +1,6 @@
 const User = require("../models/User");
 
-// user dashboard
+// User dashboard
 exports.getUserDashboard = async (req, res) => {
   const user = await User.findById(req.user.id).select("-password");
 
@@ -8,9 +8,9 @@ exports.getUserDashboard = async (req, res) => {
     success: true,
     data: user
   });
-}; 
+};
 
-// admin dashboard
+// Admin dashboard
 exports.getAdminDashboard = async (req, res) => {
   const users = await User.find().select("-password");
 
@@ -20,21 +20,21 @@ exports.getAdminDashboard = async (req, res) => {
   });
 };
 
-// delete user
+// Delete user
 exports.deleteUser = async (req, res) => {
   await User.findByIdAndDelete(req.params.id);
 
   res.json({ success: true, message: "User deleted" });
 };
 
-// update user email
+// Update user email
 exports.updateUser = async (req, res) => {
   const { email } = req.body;
 
   const user = await User.findByIdAndUpdate(
     req.params.id,
     { email },
-    { returnDocument: "after" }
+    { new: true }
   );
 
   res.json({ success: true, data: user });

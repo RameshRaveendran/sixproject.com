@@ -1,8 +1,8 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 
-// protected route
-async function protect(req, res, next) {
+// Protected route middleware
+const protect = async (req, res, next) => {
   let token;
 
   if (
@@ -13,9 +13,7 @@ async function protect(req, res, next) {
 
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
       req.user = decoded;
-
       next();
     } catch (error) {
       return res.status(401).json({
@@ -31,19 +29,14 @@ async function protect(req, res, next) {
   }
 };
 
-// admin only route
-const adminOnly = (req,res,next)=>{
-
-if(req.user.role !== "admin"){
-
-return res.status(403).json({
-message:"Admin access only"
-});
-
-}
-
-next();
-
+// Admin only middleware
+const adminOnly = (req, res, next) => {
+  if (req.user.role !== "admin") {
+    return res.status(403).json({
+      message: "Admin access only"
+    });
+  }
+  next();
 };
 
-module.exports = { protect , adminOnly};
+module.exports = { protect, adminOnly };
